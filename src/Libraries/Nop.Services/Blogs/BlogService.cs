@@ -27,6 +27,14 @@ namespace Nop.Services.Blogs
 
         #region Ctor
 
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="blogPostRepository">Blog post repository</param>
+        /// <param name="blogCommentRepository">Blog comment repository</param>
+        /// <param name="storeMappingRepository">Store mapping repository</param>
+        /// <param name="catalogSettings">Catalog settings</param>
+        /// <param name="eventPublisher">Event publisher</param>
         public BlogService(IRepository<BlogPost> blogPostRepository,
             IRepository<BlogComment> blogCommentRepository,
             IRepository<StoreMapping> storeMappingRepository,
@@ -53,7 +61,7 @@ namespace Nop.Services.Blogs
         public virtual void DeleteBlogPost(BlogPost blogPost)
         {
             if (blogPost == null)
-                throw new ArgumentNullException("blogPost");
+                throw new ArgumentNullException(nameof(blogPost));
 
             _blogPostRepository.Delete(blogPost);
 
@@ -109,6 +117,8 @@ namespace Nop.Services.Blogs
                 query = query.Where(b => languageId == b.LanguageId);
             if (!showHidden)
             {
+                //The function 'CurrentUtcDateTime' is not supported by SQL Server Compact. 
+                //That's why we pass the date value
                 var utcNow = DateTime.UtcNow;
                 query = query.Where(b => !b.StartDateUtc.HasValue || b.StartDateUtc <= utcNow);
                 query = query.Where(b => !b.EndDateUtc.HasValue || b.EndDateUtc >= utcNow);
@@ -160,7 +170,7 @@ namespace Nop.Services.Blogs
             foreach (var blogPost in blogPostsAll)
             {
                 var tags = blogPost.ParseTags();
-                if (!String.IsNullOrEmpty(tags.FirstOrDefault(t => t.Equals(tag, StringComparison.InvariantCultureIgnoreCase))))
+                if (!string.IsNullOrEmpty(tags.FirstOrDefault(t => t.Equals(tag, StringComparison.InvariantCultureIgnoreCase))))
                     taggedBlogPosts.Add(blogPost);
             }
 
@@ -184,7 +194,7 @@ namespace Nop.Services.Blogs
             foreach (var blogPost in blogPosts)
             {
                 var tags = blogPost.ParseTags();
-                foreach (string tag in tags)
+                foreach (var tag in tags)
                 {
                     var foundBlogPostTag = blogPostTags.Find(bpt => bpt.Name.Equals(tag, StringComparison.InvariantCultureIgnoreCase));
                     if (foundBlogPostTag == null)
@@ -211,7 +221,7 @@ namespace Nop.Services.Blogs
         public virtual void InsertBlogPost(BlogPost blogPost)
         {
             if (blogPost == null)
-                throw new ArgumentNullException("blogPost");
+                throw new ArgumentNullException(nameof(blogPost));
 
             _blogPostRepository.Insert(blogPost);
 
@@ -226,7 +236,7 @@ namespace Nop.Services.Blogs
         public virtual void UpdateBlogPost(BlogPost blogPost)
         {
             if (blogPost == null)
-                throw new ArgumentNullException("blogPost");
+                throw new ArgumentNullException(nameof(blogPost));
 
             _blogPostRepository.Update(blogPost);
 
@@ -309,7 +319,7 @@ namespace Nop.Services.Blogs
             var comments = query.ToList();
             //sort by passed identifiers
             var sortedComments = new List<BlogComment>();
-            foreach (int id in commentIds)
+            foreach (var id in commentIds)
             {
                 var comment = comments.Find(x => x.Id == id);
                 if (comment != null)
@@ -345,7 +355,7 @@ namespace Nop.Services.Blogs
         public virtual void DeleteBlogComment(BlogComment blogComment)
         {
             if (blogComment == null)
-                throw new ArgumentNullException("blogComment");
+                throw new ArgumentNullException(nameof(blogComment));
 
             _blogCommentRepository.Delete(blogComment);
 
@@ -360,7 +370,7 @@ namespace Nop.Services.Blogs
         public virtual void DeleteBlogComments(IList<BlogComment> blogComments)
         {
             if (blogComments == null)
-                throw new ArgumentNullException("blogComments");
+                throw new ArgumentNullException(nameof(blogComments));
 
             foreach (var blogComment in blogComments)
             {
