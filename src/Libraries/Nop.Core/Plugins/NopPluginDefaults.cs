@@ -18,6 +18,11 @@ namespace Nop.Core.Plugins
         public static string InstalledPluginsFilePath => "~/App_Data/installedPlugins.json";
 
         /// <summary>
+        /// Gets the path to file that contains installed plugin system names
+        /// </summary>
+        public static string PluginsInfoFilePath => "~/App_Data/plugins.json";
+
+        /// <summary>
         /// Gets the path to plugins folder
         /// </summary>
         public static string Path => "~/Plugins";
@@ -81,5 +86,18 @@ namespace Nop.Core.Plugins
         /// Gets the name of the theme description file
         /// </summary>
         public static string ThemeDescriptionFileName => "theme.json";
+
+        /// <summary>
+        /// Gets a key for caching plugins for admin navigation
+        /// </summary>
+        /// <remarks>
+        /// {0} : customer identifier
+        /// </remarks>
+        public static string AdminNavigationPluginsCacheKey => "Nop.plugins.adminnavigation-{0}";
+
+        /// <summary>
+        /// Gets a key to clear cache
+        /// </summary>
+        public static string AdminNavigationPluginsPatternCacheKey => "Nop.plugins.adminnavigation";
     }
 }

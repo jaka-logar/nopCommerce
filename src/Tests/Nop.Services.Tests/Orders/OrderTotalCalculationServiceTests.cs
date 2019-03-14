@@ -15,6 +15,7 @@ using Nop.Core.Domain.Stores;
 using Nop.Core.Domain.Tax;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
+using Nop.Services.Customers;
 using Nop.Services.Directory;
 using Nop.Services.Discounts;
 using Nop.Services.Events;
@@ -117,7 +118,10 @@ namespace Nop.Services.Tests.Orders
             
             _eventPublisher.Setup(x => x.Publish(It.IsAny<object>()));
 
-            var pluginFinder = new PluginFinder(_eventPublisher.Object);
+            var customerService = new Mock<ICustomerService>();
+            var loger = new Mock<ILogger>();
+
+            var pluginService = new PluginService(customerService.Object, loger.Object , CommonHelper.DefaultFileProvider, _webHelper.Object);
 
             //shipping
             _shippingSettings = new ShippingSettings
@@ -137,7 +141,7 @@ namespace Nop.Services.Tests.Orders
                 _genericAttributeService.Object,
                 _localizationService.Object,
                 _logger,
-                pluginFinder,
+                pluginService,
                 _priceCalcService,
                 _productAttributeParser.Object,
                 _productService.Object,
@@ -169,7 +173,7 @@ namespace Nop.Services.Tests.Orders
                 _genericAttributeService.Object,
                 _geoLookupService.Object,
                 _logger,
-                pluginFinder,
+                pluginService,
                 _stateProvinceService.Object,
                 _storeContext.Object,
                 _webHelper.Object,
@@ -655,7 +659,7 @@ namespace Nop.Services.Tests.Orders
             cart.ForEach(sci => sci.Customer = customer);
             cart.ForEach(sci => sci.CustomerId = customer.Id);
 
-            _genericAttributeService.Setup(x => x.GetAttribute<PickupPoint>(customer, NopCustomerDefaults.SelectedPickupPointAttribute, _store.Id))
+            _genericAttributeService.Setup(x => x.GetAttribute<PickupPoint>(customer, NopCustomerDefaults.SelectedPickupPointAttribute, _store.Id, null))
                 .Returns(new PickupPoint());
 
             var shippingRateComputationMethods = _shippingService.LoadActiveShippingRateComputationMethods(_workContext.Object.CurrentCustomer, _storeContext.Object.CurrentStore.Id);
@@ -725,7 +729,7 @@ namespace Nop.Services.Tests.Orders
             cart.ForEach(sci => sci.Customer = customer);
             cart.ForEach(sci => sci.CustomerId = customer.Id);
 
-            _genericAttributeService.Setup(x => x.GetAttribute<PickupPoint>(customer, NopCustomerDefaults.SelectedPickupPointAttribute, _store.Id))
+            _genericAttributeService.Setup(x => x.GetAttribute<PickupPoint>(customer, NopCustomerDefaults.SelectedPickupPointAttribute, _store.Id, null))
                 .Returns(new PickupPoint());
 
             var shippingRateComputationMethods = _shippingService.LoadActiveShippingRateComputationMethods(_workContext.Object.CurrentCustomer, _storeContext.Object.CurrentStore.Id);
@@ -795,7 +799,7 @@ namespace Nop.Services.Tests.Orders
             cart.ForEach(sci => sci.Customer = customer);
             cart.ForEach(sci => sci.CustomerId = customer.Id);
 
-            _genericAttributeService.Setup(x => x.GetAttribute<PickupPoint>(customer, NopCustomerDefaults.SelectedPickupPointAttribute, _store.Id))
+            _genericAttributeService.Setup(x => x.GetAttribute<PickupPoint>(customer, NopCustomerDefaults.SelectedPickupPointAttribute, _store.Id, null))
                 .Returns(new PickupPoint());
 
             (_discountService as TestDiscountService)?.AddDiscount(DiscountType.AssignedToShipping);
@@ -868,7 +872,7 @@ namespace Nop.Services.Tests.Orders
             cart.ForEach(sci => sci.Customer = customer);
             cart.ForEach(sci => sci.CustomerId = customer.Id);
 
-            _genericAttributeService.Setup(x => x.GetAttribute<PickupPoint>(customer, NopCustomerDefaults.SelectedPickupPointAttribute, _store.Id))
+            _genericAttributeService.Setup(x => x.GetAttribute<PickupPoint>(customer, NopCustomerDefaults.SelectedPickupPointAttribute, _store.Id, null))
                 .Returns(new PickupPoint());
 
             (_discountService as TestDiscountService)?.AddDiscount(DiscountType.AssignedToShipping);
@@ -928,7 +932,7 @@ namespace Nop.Services.Tests.Orders
             cart.ForEach(sci => sci.Customer = customer);
             cart.ForEach(sci => sci.CustomerId = customer.Id);
             
-            _genericAttributeService.Setup(x => x.GetAttribute<string>(customer, NopCustomerDefaults.SelectedPaymentMethodAttribute, _store.Id))
+            _genericAttributeService.Setup(x => x.GetAttribute<string>(customer, NopCustomerDefaults.SelectedPaymentMethodAttribute, _store.Id, null))
                 .Returns("test1");
 
             _paymentService.Setup(ps => ps.GetAdditionalHandlingFee(cart, "test1")).Returns(20);
@@ -1019,7 +1023,7 @@ namespace Nop.Services.Tests.Orders
             cart.ForEach(sci => sci.Customer = customer);
             cart.ForEach(sci => sci.CustomerId = customer.Id);
             
-            _genericAttributeService.Setup(x => x.GetAttribute<string>(customer, NopCustomerDefaults.SelectedPaymentMethodAttribute, _store.Id))
+            _genericAttributeService.Setup(x => x.GetAttribute<string>(customer, NopCustomerDefaults.SelectedPaymentMethodAttribute, _store.Id, null))
                 .Returns("test1");
 
             _paymentService.Setup(ps => ps.GetAdditionalHandlingFee(cart, "test1")).Returns(20);
@@ -1076,7 +1080,7 @@ namespace Nop.Services.Tests.Orders
             cart.ForEach(sci => sci.Customer = customer);
             cart.ForEach(sci => sci.CustomerId = customer.Id);
 
-            _genericAttributeService.Setup(x => x.GetAttribute<string>(customer, NopCustomerDefaults.SelectedPaymentMethodAttribute, _store.Id))
+            _genericAttributeService.Setup(x => x.GetAttribute<string>(customer, NopCustomerDefaults.SelectedPaymentMethodAttribute, _store.Id, null))
                 .Returns("test1");
 
             _paymentService.Setup(ps => ps.GetAdditionalHandlingFee(cart, "test1")).Returns(20);
@@ -1231,7 +1235,7 @@ namespace Nop.Services.Tests.Orders
             (_discountService as TestDiscountService)?.AddDiscount(DiscountType.AssignedToOrderTotal);
            
             _genericAttributeService.Setup(x =>
-                    x.GetAttribute<string>(customer, NopCustomerDefaults.SelectedPaymentMethodAttribute, _store.Id))
+                    x.GetAttribute<string>(customer, NopCustomerDefaults.SelectedPaymentMethodAttribute, _store.Id, null))
                 .Returns("test1");
 
             _paymentService.Setup(ps => ps.GetAdditionalHandlingFee(cart, "test1")).Returns(20);

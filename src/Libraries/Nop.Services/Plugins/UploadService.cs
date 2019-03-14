@@ -34,9 +34,9 @@ namespace Nop.Services.Plugins
             IStoreContext storeContext,
             IThemeProvider themeProvider)
         {
-            this._fileProvider = fileProvider;
-            this._storeContext = storeContext;
-            this._themeProvider = themeProvider;
+            _fileProvider = fileProvider;
+            _storeContext = storeContext;
+            _themeProvider = themeProvider;
         }
 
         #endregion
@@ -118,7 +118,7 @@ namespace Nop.Services.Plugins
                             //whether a plugin is upload 
                             if (isPluginDescriptor)
                             {
-                                descriptor = PluginManager.GetPluginDescriptorFromText(reader.ReadToEnd());
+                                descriptor = PluginDescriptor.GetPluginDescriptorFromText(reader.ReadToEnd());
 
                                 //ensure that the plugin current version is supported
                                 if (!((PluginDescriptor)descriptor).SupportedVersions.Contains(NopVersion.CurrentVersion))
@@ -210,7 +210,7 @@ namespace Nop.Services.Plugins
                         {
                             //whether a plugin is upload 
                             if (item.Type == UploadedItemType.Plugin)
-                                descriptor = PluginManager.GetPluginDescriptorFromText(reader.ReadToEnd());
+                                descriptor = PluginDescriptor.GetPluginDescriptorFromText(reader.ReadToEnd());
 
                             //or whether a theme is upload 
                             if (item.Type == UploadedItemType.Theme)

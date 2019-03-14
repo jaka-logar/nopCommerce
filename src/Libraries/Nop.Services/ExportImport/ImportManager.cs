@@ -117,37 +117,37 @@ namespace Nop.Services.ExportImport
             MediaSettings mediaSettings,
             VendorSettings vendorSettings)
         {
-            this._catalogSettings = catalogSettings;
-            this._categoryService = categoryService;
-            this._countryService = countryService;
-            this._customerActivityService = customerActivityService;
-            this._dataProvider = dataProvider;
-            this._dateRangeService = dateRangeService;
-            this._encryptionService = encryptionService;
-            this._fileProvider = fileProvider;
-            this._localizationService = localizationService;
-            this._logger = logger;
-            this._manufacturerService = manufacturerService;
-            this._measureService = measureService;
-            this._newsLetterSubscriptionService = newsLetterSubscriptionService;
-            this._pictureService = pictureService;
-            this._productAttributeService = productAttributeService;
-            this._productService = productService;
-            this._productTagService = productTagService;
-            this._productTemplateService = productTemplateService;
-            this._serviceScopeFactory = serviceScopeFactory;
-            this._shippingService = shippingService;
-            this._specificationAttributeService = specificationAttributeService;
-            this._stateProvinceService = stateProvinceService;
-            this._storeContext = storeContext;
-            this._storeMappingService = storeMappingService;
-            this._storeService = storeService;
-            this._taxCategoryService = taxCategoryService;
-            this._urlRecordService = urlRecordService;
-            this._vendorService = vendorService;
-            this._workContext = workContext;
-            this._mediaSettings = mediaSettings;
-            this._vendorSettings = vendorSettings;
+            _catalogSettings = catalogSettings;
+            _categoryService = categoryService;
+            _countryService = countryService;
+            _customerActivityService = customerActivityService;
+            _dataProvider = dataProvider;
+            _dateRangeService = dateRangeService;
+            _encryptionService = encryptionService;
+            _fileProvider = fileProvider;
+            _localizationService = localizationService;
+            _logger = logger;
+            _manufacturerService = manufacturerService;
+            _measureService = measureService;
+            _newsLetterSubscriptionService = newsLetterSubscriptionService;
+            _pictureService = pictureService;
+            _productAttributeService = productAttributeService;
+            _productService = productService;
+            _productTagService = productTagService;
+            _productTemplateService = productTemplateService;
+            _serviceScopeFactory = serviceScopeFactory;
+            _shippingService = shippingService;
+            _specificationAttributeService = specificationAttributeService;
+            _stateProvinceService = stateProvinceService;
+            _storeContext = storeContext;
+            _storeMappingService = storeMappingService;
+            _storeService = storeService;
+            _taxCategoryService = taxCategoryService;
+            _urlRecordService = urlRecordService;
+            _vendorService = vendorService;
+            _workContext = workContext;
+            _mediaSettings = mediaSettings;
+            _vendorSettings = vendorSettings;
         }
 
         #endregion
@@ -1216,9 +1216,10 @@ namespace Nop.Services.ExportImport
                 Dictionary<CategoryKey, Category> allCategories;
                 try
                 {
-                    allCategories = _categoryService
-                        .GetAllCategories(showHidden: true, loadCacheableCopy: false)
-                        .ToDictionary(c => new CategoryKey(c, _categoryService, _storeMappingService), c => c);
+                    var allCategoryList = _categoryService.GetAllCategories(showHidden: true, loadCacheableCopy: false);
+                    
+                    allCategories = allCategoryList
+                        .ToDictionary(c => new CategoryKey(c, _categoryService, allCategoryList, _storeMappingService), c => c);
                 }
                 catch (ArgumentException)
                 {
@@ -1640,7 +1641,23 @@ namespace Nop.Services.ExportImport
 
                         var importedCategories = categoryList.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
                             .Select(categoryName => new CategoryKey(categoryName))
-                            .Select(categoryKey => allCategories.ContainsKey(categoryKey) ? allCategories[categoryKey].Id : allCategories.Values.FirstOrDefault(c => c.Name == categoryKey.Key)?.Id ?? int.Parse(categoryKey.Key)).ToList();
+                            .Select(categoryKey =>
+                            {
+                                var rez = allCategories.ContainsKey(categoryKey) ? allCategories[categoryKey].Id : allCategories.Values.FirstOrDefault(c => c.Name == categoryKey.Key)?.Id;
+
+                                if (!rez.HasValue && int.TryParse(categoryKey.Key, out var id))
+                                {
+                                    rez = id;
+                                }
+                                
+                                if(!rez.HasValue)
+                                {
+                                    //database doesn't contain the imported category
+                                    throw new ArgumentException(string.Format(_localizationService.GetResource("Admin.Catalog.Products.Import.DatabaseNotContainCategory"), categoryKey.Key));
+                                }
+
+                                return rez.Value;
+                            }).ToList();
 
                         foreach (var categoryId in importedCategories)
                         {
@@ -2157,9 +2174,9 @@ namespace Nop.Services.ExportImport
 
         public class CategoryKey
         {
-            public CategoryKey(Category category, ICategoryService categoryService, IStoreMappingService storeMappingService)
+            public CategoryKey(Category category, ICategoryService categoryService, IList<Category> allCategories, IStoreMappingService storeMappingService)
             {
-                Key = categoryService.GetFormattedBreadCrumb(category);
+                Key = categoryService.GetFormattedBreadCrumb(category, allCategories);
                 StoresIds = category.LimitedToStores ? storeMappingService.GetStoresIdsWithAccess(category).ToList() : new List<int>();
                 Category = category;
             }

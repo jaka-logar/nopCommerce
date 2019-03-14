@@ -41,13 +41,13 @@ namespace Nop.Web.Areas.Admin.Factories
             IReviewTypeService reviewTypeService,
             IWorkContext workContext)
         {
-            this._catalogSettings = catalogSettings;
-            this._baseAdminModelFactory = baseAdminModelFactory;
-            this._dateTimeHelper = dateTimeHelper;
-            this._localizationService = localizationService;
-            this._productService = productService;
-            this._reviewTypeService = reviewTypeService;
-            this._workContext = workContext;
+            _catalogSettings = catalogSettings;
+            _baseAdminModelFactory = baseAdminModelFactory;
+            _dateTimeHelper = dateTimeHelper;
+            _localizationService = localizationService;
+            _productService = productService;
+            _reviewTypeService = reviewTypeService;
+            _workContext = workContext;
         }
 
         #endregion
@@ -211,6 +211,8 @@ namespace Nop.Web.Areas.Admin.Factories
                 throw new ArgumentNullException(nameof(productReview));
 
             searchModel.ProductReviewId = productReview.Id;
+
+            searchModel.IsAnyReviewTypes = productReview.ProductReviewReviewTypeMappingEntries.Any();
 
             //prepare page parameters
             searchModel.SetGridPageSize();

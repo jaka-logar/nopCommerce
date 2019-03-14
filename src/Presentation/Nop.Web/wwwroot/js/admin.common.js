@@ -129,10 +129,15 @@ function saveUserPreferences(url, name, value) {
         type: 'post',
         data: postData,
         dataType: 'json',
+        success: function() {
+          $("#ajaxBusy span").removeClass("no-ajax-loader");
+        },
         error: function(xhr, ajaxOptions, thrownError) {
-            alert('Failed to save preferences.');
+          alert('Failed to save preferences.');
+          $("#ajaxBusy span").removeClass("no-ajax-loader");
         }
-    });
+  });
+
 };
 
 function warningValidation(validationUrl, warningElementName, passedParameters) {
@@ -226,4 +231,45 @@ $(document).ajaxStart(function () {
     $('#ajaxBusy').show();
 }).ajaxStop(function () {
     $('#ajaxBusy').hide();
+    });
+
+//no-tabs solution
+$(document).ready(function () {
+    $(".panel.collapsible-panel >.panel-heading").click(WrapAndSaveBlockData);
 });
+
+function WrapAndSaveBlockData() {
+    $(this).parents(".panel").find(">.panel-container").slideToggle();
+    $("#ajaxBusy span").addClass("no-ajax-loader");
+    var icon = $(this).find("i.toggle-icon");
+    if ($(this).hasClass("opened")) {
+        icon.removeClass("fa-minus");
+        icon.addClass("fa-plus");
+        saveUserPreferences(rootAppPath + 'admin/preferences/savepreference', $(this).attr("data-hideAttribute"), true);
+    } else {
+        icon.addClass("fa-minus");
+        icon.removeClass("fa-plus");
+        saveUserPreferences(rootAppPath + 'admin/preferences/savepreference', $(this).attr("data-hideAttribute"), false);
+    }
+
+    $(this).toggleClass("opened");
+}
+
+//collapse search block
+$(document).ready(function () {
+  $(".row.search-row").click(ToggleSearchBlock);
+});
+
+function ToggleSearchBlock() {
+    $(this).parents(".panel-search").find(".search-body").slideToggle();
+    var icon = $(this).find(".icon-collapse i");
+    if ($(this).hasClass("opened")) {
+      icon.removeClass("fa-angle-up");
+      icon.addClass("fa-angle-down");
+    } else {
+      icon.addClass("fa-angle-up");
+      icon.removeClass("fa-angle-down");
+    }
+
+    $(this).toggleClass("opened");
+}

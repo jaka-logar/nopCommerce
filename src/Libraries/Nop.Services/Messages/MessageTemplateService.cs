@@ -28,7 +28,6 @@ namespace Nop.Services.Messages
         private readonly IRepository<MessageTemplate> _messageTemplateRepository;
         private readonly IRepository<StoreMapping> _storeMappingRepository;
         private readonly IStoreMappingService _storeMappingService;
-        private readonly string _entityName;
 
         #endregion
 
@@ -44,16 +43,15 @@ namespace Nop.Services.Messages
             IRepository<StoreMapping> storeMappingRepository,
             IStoreMappingService storeMappingService)
         {
-            this._catalogSettings = catalogSettings;
-            this._cacheManager = cacheManager;
-            this._eventPublisher = eventPublisher;
-            this._languageService = languageService;
-            this._localizationService = localizationService;
-            this._localizedEntityService = localizedEntityService;
-            this._messageTemplateRepository = messageTemplateRepository;
-            this._storeMappingRepository = storeMappingRepository;
-            this._storeMappingService = storeMappingService;
-            this._entityName = typeof(MessageTemplate).Name;
+            _catalogSettings = catalogSettings;
+            _cacheManager = cacheManager;
+            _eventPublisher = eventPublisher;
+            _languageService = languageService;
+            _localizationService = localizationService;
+            _localizedEntityService = localizedEntityService;
+            _messageTemplateRepository = messageTemplateRepository;
+            _storeMappingRepository = storeMappingRepository;
+            _storeMappingService = storeMappingService;
         }
 
         #endregion
@@ -170,7 +168,7 @@ namespace Nop.Services.Messages
                 //store mapping
                 query = from t in query
                     join sm in _storeMappingRepository.Table
-                        on new { c1 = t.Id, c2 = _entityName } equals new { c1 = sm.EntityId, c2 = sm.EntityName } into tSm
+                        on new { c1 = t.Id, c2 = nameof(MessageTemplate) } equals new { c1 = sm.EntityId, c2 = sm.EntityName } into tSm
                     from sm in tSm.DefaultIfEmpty()
                     where !t.LimitedToStores || storeId == sm.StoreId
                     select t;

@@ -139,50 +139,50 @@ namespace Nop.Web.Factories
             TaxSettings taxSettings,
             VendorSettings vendorSettings)
         {
-            this._addressSettings = addressSettings;
-            this._captchaSettings = captchaSettings;
-            this._catalogSettings = catalogSettings;
-            this._commonSettings = commonSettings;
-            this._customerSettings = customerSettings;
-            this._addressModelFactory = addressModelFactory;
-            this._checkoutAttributeFormatter = checkoutAttributeFormatter;
-            this._checkoutAttributeParser = checkoutAttributeParser;
-            this._checkoutAttributeService = checkoutAttributeService;
-            this._countryService = countryService;
-            this._currencyService = currencyService;
-            this._customerService = customerService;
-            this._discountService = discountService;
-            this._downloadService = downloadService;
-            this._genericAttributeService = genericAttributeService;
-            this._giftCardService = giftCardService;
-            this._httpContextAccessor = httpContextAccessor;
-            this._localizationService = localizationService;
-            this._orderProcessingService = orderProcessingService;
-            this._orderTotalCalculationService = orderTotalCalculationService;
-            this._paymentService = paymentService;
-            this._permissionService = permissionService;
-            this._pictureService = pictureService;
-            this._priceCalculationService = priceCalculationService;
-            this._priceFormatter = priceFormatter;
-            this._productAttributeFormatter = productAttributeFormatter;
-            this._productService = productService;
-            this._shippingService = shippingService;
-            this._shoppingCartService = shoppingCartService;
-            this._stateProvinceService = stateProvinceService;
-            this._cacheManager = cacheManager;
-            this._storeContext = storeContext;
-            this._taxService = taxService;
-            this._urlRecordService = urlRecordService;
-            this._vendorService = vendorService;
-            this._webHelper = webHelper;
-            this._workContext = workContext;
-            this._mediaSettings = mediaSettings;
-            this._orderSettings = orderSettings;
-            this._rewardPointsSettings = rewardPointsSettings;
-            this._shippingSettings = shippingSettings;
-            this._shoppingCartSettings = shoppingCartSettings;
-            this._taxSettings = taxSettings;
-            this._vendorSettings = vendorSettings;
+            _addressSettings = addressSettings;
+            _captchaSettings = captchaSettings;
+            _catalogSettings = catalogSettings;
+            _commonSettings = commonSettings;
+            _customerSettings = customerSettings;
+            _addressModelFactory = addressModelFactory;
+            _checkoutAttributeFormatter = checkoutAttributeFormatter;
+            _checkoutAttributeParser = checkoutAttributeParser;
+            _checkoutAttributeService = checkoutAttributeService;
+            _countryService = countryService;
+            _currencyService = currencyService;
+            _customerService = customerService;
+            _discountService = discountService;
+            _downloadService = downloadService;
+            _genericAttributeService = genericAttributeService;
+            _giftCardService = giftCardService;
+            _httpContextAccessor = httpContextAccessor;
+            _localizationService = localizationService;
+            _orderProcessingService = orderProcessingService;
+            _orderTotalCalculationService = orderTotalCalculationService;
+            _paymentService = paymentService;
+            _permissionService = permissionService;
+            _pictureService = pictureService;
+            _priceCalculationService = priceCalculationService;
+            _priceFormatter = priceFormatter;
+            _productAttributeFormatter = productAttributeFormatter;
+            _productService = productService;
+            _shippingService = shippingService;
+            _shoppingCartService = shoppingCartService;
+            _stateProvinceService = stateProvinceService;
+            _cacheManager = cacheManager;
+            _storeContext = storeContext;
+            _taxService = taxService;
+            _urlRecordService = urlRecordService;
+            _vendorService = vendorService;
+            _webHelper = webHelper;
+            _workContext = workContext;
+            _mediaSettings = mediaSettings;
+            _orderSettings = orderSettings;
+            _rewardPointsSettings = rewardPointsSettings;
+            _shippingSettings = shippingSettings;
+            _shoppingCartSettings = shoppingCartSettings;
+            _taxSettings = taxSettings;
+            _vendorSettings = vendorSettings;
         }
 
         #endregion
@@ -809,6 +809,12 @@ namespace Nop.Web.Factories
             model.OnePageCheckoutEnabled = _orderSettings.OnePageCheckoutEnabled;
             if (!cart.Any())
                 return model;
+            
+            //performance optimization workaround (for Entity Framework)
+            //load all products at once (one SQL command)
+            //if not loaded right now, then anyway the code below will load each product separately (multiple SQL commands)
+            _productService.GetProductsByIds(cart.Select(sci => sci.ProductId).ToArray());
+            
             model.IsEditable = isEditable;
             model.ShowProductImages = _shoppingCartSettings.ShowProductImagesOnShoppingCart;
             model.ShowSku = _catalogSettings.ShowSkuOnProductDetailsPage;
@@ -919,6 +925,11 @@ namespace Nop.Web.Factories
             if (!cart.Any())
                 return model;
 
+            //performance optimization workaround (for Entity Framework)
+            //load all products at once (one SQL command)
+            //if not loaded right now, then anyway the code below will load each product separately (multiple SQL commands)
+            _productService.GetProductsByIds(cart.Select(sci => sci.ProductId).ToArray());
+
             //simple properties
             var customer = cart.FirstOrDefault(item => item.Customer != null)?.Customer;
             model.CustomerGuid = customer.CustomerGuid;
@@ -960,6 +971,11 @@ namespace Nop.Web.Factories
             if (_workContext.CurrentCustomer.HasShoppingCartItems)
             {
                 var cart = _shoppingCartService.GetShoppingCart(_workContext.CurrentCustomer, ShoppingCartType.ShoppingCart, _storeContext.CurrentStore.Id);
+
+                //one more performance optimization workaround (for Entity Framework)
+                //load all products at once (one SQL command)
+                //if not loaded right now, then anyway the code below will load each product separately (multiple SQL commands)
+                _productService.GetProductsByIds(cart.Select(sci => sci.ProductId).ToArray());
 
                 model.TotalProducts = cart.Sum(item => item.Quantity);
                 if (cart.Any())
