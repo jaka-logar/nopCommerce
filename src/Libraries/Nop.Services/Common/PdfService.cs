@@ -49,6 +49,7 @@ namespace Nop.Services.Common
         private readonly IMeasureService _measureService;
         private readonly INopFileProvider _fileProvider;
         private readonly IOrderService _orderService;
+        private readonly IPaymentPluginManager _paymentPluginManager;
         private readonly IPaymentService _paymentService;
         private readonly IPictureService _pictureService;
         private readonly IPriceFormatter _priceFormatter;
@@ -78,6 +79,7 @@ namespace Nop.Services.Common
             IMeasureService measureService,
             INopFileProvider fileProvider,
             IOrderService orderService,
+            IPaymentPluginManager paymentPluginManager,
             IPaymentService paymentService,
             IPictureService pictureService,
             IPriceFormatter priceFormatter,
@@ -103,6 +105,7 @@ namespace Nop.Services.Common
             _measureService = measureService;
             _fileProvider = fileProvider;
             _orderService = orderService;
+            _paymentPluginManager = paymentPluginManager;
             _paymentService = paymentService;
             _pictureService = pictureService;
             _priceFormatter = priceFormatter;
@@ -928,7 +931,7 @@ namespace Nop.Services.Common
                 //cell.Border = Rectangle.NO_BORDER;
                 const string indent = "   ";
 
-                if (!order.PickUpInStore)
+                if (!order.PickupInStore)
                 {
                     if (order.ShippingAddress == null)
                         throw new NopException($"Shipping is required, but address is not available. Order ID = {order.Id}");
@@ -1062,7 +1065,7 @@ namespace Nop.Services.Common
             if (vendorId == 0)
             {
                 //payment method
-                var paymentMethod = _paymentService.LoadPaymentMethodBySystemName(order.PaymentMethodSystemName);
+                var paymentMethod = _paymentPluginManager.LoadPluginBySystemName(order.PaymentMethodSystemName);
                 var paymentMethodStr = paymentMethod != null
                     ? _localizationService.GetLocalizedFriendlyName(paymentMethod, lang.Id)
                     : order.PaymentMethodSystemName;
@@ -1309,7 +1312,7 @@ namespace Nop.Services.Common
                 addressTable.AddCell(GetParagraph("PDFPackagingSlip.Shipment", lang, titleFont, shipment.Id));
                 addressTable.AddCell(GetParagraph("PDFPackagingSlip.Order", lang, titleFont, order.CustomOrderNumber));
 
-                if (!order.PickUpInStore)
+                if (!order.PickupInStore)
                 {
                     if (order.ShippingAddress == null)
                         throw new NopException($"Shipping is required, but address is not available. Order ID = {order.Id}");

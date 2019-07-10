@@ -108,7 +108,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         public virtual IActionResult List(ReturnRequestSearchModel searchModel)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageReturnRequests))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedDataTablesJson();
 
             //prepare model
             var model = _returnRequestModelFactory.PrepareReturnRequestListModel(searchModel);
@@ -221,8 +221,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSettings))
                 return AccessDeniedView();
 
-            //select "return request" tab
-            SaveSelectedTabName("tab-returnrequest");
+            //select an appropriate panel
+            SaveSelectedPanelName("ordersettings-return-request");
 
             //we just redirect a user to the order settings page
             return RedirectToAction("Order", "Setting");
@@ -232,7 +232,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         public virtual IActionResult ReturnRequestReasonList(ReturnRequestReasonSearchModel searchModel)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSettings))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedDataTablesJson();
 
             //prepare model
             var model = _returnRequestModelFactory.PrepareReturnRequestReasonListModel(searchModel);
@@ -318,10 +318,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 if (!continueEditing)
                     return RedirectToAction("ReturnRequestReasonList");
-
-                //selected tab
-                SaveSelectedTabName();
-
+                
                 return RedirectToAction("ReturnRequestReasonEdit", new { id = returnRequestReason.Id });
             }
 
@@ -358,8 +355,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSettings))
                 return AccessDeniedView();
 
-            //select "return request" tab
-            SaveSelectedTabName("tab-returnrequest");
+            //select an appropriate panel
+            SaveSelectedPanelName("ordersettings-return-request");
 
             //we just redirect a user to the order settings page
             return RedirectToAction("Order", "Setting");
@@ -369,7 +366,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         public virtual IActionResult ReturnRequestActionList(ReturnRequestActionSearchModel searchModel)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSettings))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedDataTablesJson();
 
             //prepare model
             var model = _returnRequestModelFactory.PrepareReturnRequestActionListModel(searchModel);
@@ -455,10 +452,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 if (!continueEditing)
                     return RedirectToAction("ReturnRequestActionList");
-
-                //selected tab
-                SaveSelectedTabName();
-
+                
                 return RedirectToAction("ReturnRequestActionEdit", new { id = returnRequestAction.Id });
             }
 

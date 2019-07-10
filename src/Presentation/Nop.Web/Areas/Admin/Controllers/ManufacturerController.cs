@@ -210,7 +210,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         public virtual IActionResult List(ManufacturerSearchModel searchModel)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageManufacturers))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedDataTablesJson();
 
             //prepare model
             var model = _manufacturerModelFactory.PrepareManufacturerListModel(searchModel);
@@ -281,10 +281,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 if (!continueEditing)
                     return RedirectToAction("List");
-
-                //selected tab
-                SaveSelectedTabName();
-
+                
                 return RedirectToAction("Edit", new { id = manufacturer.Id });
             }
 
@@ -382,10 +379,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 if (!continueEditing)
                     return RedirectToAction("List");
-
-                //selected tab
-                SaveSelectedTabName();
-
+                
                 return RedirectToAction("Edit", new { id = manufacturer.Id });
             }
 
@@ -498,7 +492,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         public virtual IActionResult ProductList(ManufacturerProductSearchModel searchModel)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageManufacturers))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedDataTablesJson();
 
             //try to get a manufacturer with the specified id
             var manufacturer = _manufacturerService.GetManufacturerById(searchModel.ManufacturerId)
@@ -557,7 +551,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         public virtual IActionResult ProductAddPopupList(AddProductToManufacturerSearchModel searchModel)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageManufacturers))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedDataTablesJson();
 
             //prepare model
             var model = _manufacturerModelFactory.PrepareAddProductToManufacturerListModel(searchModel);

@@ -531,7 +531,11 @@ namespace Nop.Web.Factories
             if (product == null)
                 throw new ArgumentNullException(nameof(product));
 
-            var productTagsCacheKey = string.Format(NopModelCacheDefaults.ProductTagByProductModelKey, product.Id, _workContext.WorkingLanguage.Id, _storeContext.CurrentStore.Id);
+            var productTagsCacheKey = string.Format(NopModelCacheDefaults.ProductTagByProductModelKey, 
+                product.Id, 
+                _workContext.WorkingLanguage.Id,
+                string.Join(",", _workContext.CurrentCustomer.GetCustomerRoleIds()),
+                _storeContext.CurrentStore.Id);
             var model = _cacheManager.Get(productTagsCacheKey, () =>
                 _productTagService.GetAllProductTagsByProductId(product.Id)
                 //filter by store
@@ -1395,7 +1399,7 @@ namespace Nop.Web.Factories
                 {
                     Id = pr.Id,
                     CustomerId = pr.CustomerId,
-                    CustomerName = _customerService.FormatUserName(customer),
+                    CustomerName = _customerService.FormatUsername(customer),
                     AllowViewingProfiles = _customerSettings.AllowViewingProfiles && customer != null && !customer.IsGuest(),
                     Title = pr.Title,
                     ReviewText = pr.ReviewText,
@@ -1599,10 +1603,10 @@ namespace Nop.Web.Factories
                             m.ValueRaw = WebUtility.HtmlEncode(_localizationService.GetLocalized(psa.SpecificationAttributeOption, x => x.Name));
                             break;
                         case SpecificationAttributeType.CustomText:
-                            m.ValueRaw = WebUtility.HtmlEncode(psa.CustomValue);
+                            m.ValueRaw = WebUtility.HtmlEncode(_localizationService.GetLocalized(psa, x => x.CustomValue));
                             break;
                         case SpecificationAttributeType.CustomHtmlText:
-                            m.ValueRaw = psa.CustomValue;
+                            m.ValueRaw = _localizationService.GetLocalized(psa, x => x.CustomValue);
                             break;
                         case SpecificationAttributeType.Hyperlink:
                             m.ValueRaw = $"<a href='{psa.CustomValue}' target='_blank'>{psa.CustomValue}</a>";

@@ -671,7 +671,7 @@ namespace Nop.Services.Customers
         /// <param name="stripTooLong">Strip too long customer name</param>
         /// <param name="maxLength">Maximum customer name length</param>
         /// <returns>Formatted text</returns>
-        public virtual string FormatUserName(Customer customer, bool stripTooLong = false, int maxLength = 0)
+        public virtual string FormatUsername(Customer customer, bool stripTooLong = false, int maxLength = 0)
         {
             if (customer == null)
                 return string.Empty;
@@ -978,7 +978,7 @@ namespace Nop.Services.Customers
 
             _customerRoleRepository.Delete(customerRole);
 
-            _cacheManager.RemoveByPattern(NopCustomerServiceDefaults.CustomerRolesPatternCacheKey);
+            _cacheManager.RemoveByPrefix(NopCustomerServiceDefaults.CustomerRolesPrefixCacheKey);
 
             //event notification
             _eventPublisher.EntityDeleted(customerRole);
@@ -1049,7 +1049,7 @@ namespace Nop.Services.Customers
 
             _customerRoleRepository.Insert(customerRole);
 
-            _cacheManager.RemoveByPattern(NopCustomerServiceDefaults.CustomerRolesPatternCacheKey);
+            _cacheManager.RemoveByPrefix(NopCustomerServiceDefaults.CustomerRolesPrefixCacheKey);
 
             //event notification
             _eventPublisher.EntityInserted(customerRole);
@@ -1066,7 +1066,7 @@ namespace Nop.Services.Customers
 
             _customerRoleRepository.Update(customerRole);
 
-            _cacheManager.RemoveByPattern(NopCustomerServiceDefaults.CustomerRolesPatternCacheKey);
+            _cacheManager.RemoveByPrefix(NopCustomerServiceDefaults.CustomerRolesPrefixCacheKey);
 
             //event notification
             _eventPublisher.EntityUpdated(customerRole);

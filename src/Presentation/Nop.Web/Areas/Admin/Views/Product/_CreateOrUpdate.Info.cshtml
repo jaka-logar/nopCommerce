@@ -6,7 +6,6 @@
 @using Nop.Core.Domain.Catalog;
 @using Nop.Services.Catalog;
 @using System.Text;
-@using System.Text.Encodings.Web
 @using Nop.Services
 @using Nop.Services.Stores
 
@@ -23,7 +22,7 @@
     $(document).ready(function() {
         @if (!Model.IsLoggedInAsVendor)
         {
-            <text>$("#@Html.IdFor(model => model.ShowOnHomePage)").click(toggleShowOnHomePage);</text>
+            <text>$("#@Html.IdFor(model => model.ShowOnHomepage)").click(toggleShowOnHomepage);</text>
         }
         $("#@Html.IdFor(model => model.ProductTypeId)").change(toggleProductType);
         $("#@Html.IdFor(model => model.RequireOtherProducts)").click(toggleRequireOtherProducts);
@@ -31,15 +30,15 @@
 
         @if (!Model.IsLoggedInAsVendor)
         {
-            <text>toggleShowOnHomePage();</text>
+            <text>toggleShowOnHomepage();</text>
         }
         toggleProductType();
         toggleRequireOtherProducts();
         toggleMarkAsNew();
     });
 
-    function toggleShowOnHomePage() {
-        if ($('#@Html.IdFor(model => model.ShowOnHomePage)').is(':checked')) {
+    function toggleShowOnHomepage() {
+        if ($('#@Html.IdFor(model => model.ShowOnHomepage)').is(':checked')) {
             $('#pnlDisplayOrder').show();
         } else {
             $('#pnlDisplayOrder').hide();
@@ -191,17 +190,18 @@
 
             $.ajax({
                 cache: false,
-                type: 'POST',
-                url: '@Url.Action("LoadProductFriendlyNames", "Product")',
+                type: "POST",
+                url: "@Url.Action("LoadProductFriendlyNames", "Product")",
                 data: postData,
-                dataType: 'json',
-                success: function(data) {
-                    $('#required-products-check-progress').hide();
+                dataType: "json",
+                success: function (data, textStatus, jqXHR) {
                     $('#required-product-names').text(data.Text);
                 },
-                failure: function() {
-                    $('#required-products-check-progress').hide();
+                error: function (jqXHR, textStatus, errorThrown) {
                     $('#required-product-names').text('');
+                },
+                complete: function (jqXHR, textStatus) {
+                    $('#required-products-check-progress').hide();
                 }
             });
         } else {
@@ -385,16 +385,16 @@
             <span asp-validation-for="ManufacturerPartNumber"></span>
         </div>
     </div>
-    <div class="form-group @(Model.ProductEditorSettingsModel.ShowOnHomePage ? null : "advanced-setting")" @(Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;'") : null)>
+    <div class="form-group @(Model.ProductEditorSettingsModel.ShowOnHomepage ? null : "advanced-setting")" @(Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;'") : null)>
         <div class="col-md-3">
-            <nop-label asp-for="ShowOnHomePage" />
+            <nop-label asp-for="ShowOnHomepage" />
         </div>
         <div class="col-md-9">
-            <nop-editor asp-for="ShowOnHomePage" />
-            <span asp-validation-for="ShowOnHomePage"></span>
+            <nop-editor asp-for="ShowOnHomepage" />
+            <span asp-validation-for="ShowOnHomepage"></span>
         </div>
     </div>
-    <nop-nested-setting asp-for="ShowOnHomePage">
+    <nop-nested-setting asp-for="ShowOnHomepage">
         <div class="form-group @(Model.ProductEditorSettingsModel.DisplayOrder ? null : "advanced-setting")" id="pnlDisplayOrder" @(Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;'") : null)>
             <div class="col-md-3">
                 <nop-label asp-for="DisplayOrder" />
@@ -432,120 +432,62 @@
         </div>
         @if (Model.Id > 0)
         {
-            <div class="panel-body">
-                <ul class="common-list">
-                    <li>
-                        @T("Admin.Catalog.Products.AssociatedProducts.Note1")
-                    </li>
-                    <li>
-                        @T("Admin.Catalog.Products.AssociatedProducts.Note2")
-                    </li>
-                </ul>
+        <div class="panel-body">
+            <ul class="common-list">
+                <li>
+                    @T("Admin.Catalog.Products.AssociatedProducts.Note1")
+                </li>
+                <li>
+                    @T("Admin.Catalog.Products.AssociatedProducts.Note2")
+                </li>
+            </ul>
 
-                <div id="associatedproducts-grid"></div>
-
-                <script>
-                            $(document).ready(function() {
-                                $("#associatedproducts-grid").kendoGrid({
-                                    dataSource: {
-                                        type: "json",
-                                        transport: {
-                                            read: {
-                                                url: "@Html.Raw(Url.Action("AssociatedProductList", "Product"))",
-                                                type: "POST",
-                                                dataType: "json",
-                                                data: function additionalData() {
-                                                    var data = {
-                                                        ProductId: '@(Model.Id)'
-                                                    };
-                                                    addAntiForgeryToken(data);
-                                                    return data;
-                                                }
-                                            },
-                                            update: {
-                                                url: "@Html.Raw(Url.Action("AssociatedProductUpdate", "Product"))",
-                                                type: "POST",
-                                                dataType: "json",
-                                                data: addAntiForgeryToken
-                                            },
-                                            destroy: {
-                                                url: "@Html.Raw(Url.Action("AssociatedProductDelete", "Product"))",
-                                                type: "POST",
-                                                dataType: "json",
-                                                data: addAntiForgeryToken
-                                            }
-                                        },
-                                        schema: {
-                                            data: "Data",
-                                            total: "Total",
-                                            errors: "Errors",
-                                            model: {
-                                                id: "Id",
-                                                fields: {
-                                                    ProductName: { editable: false, type: "string" },
-                                                    DisplayOrder: { editable: true, type: "number" },
-                                                    Id: { editable: false, type: "number" }
-                                                }
-                                            }
-                                        },
-                                        requestEnd: function(e) {
-                                            if (e.type == "update") {
-                                                this.read();
-                                            }
-                                        },
-                                        error: function(e) {
-                                            display_kendoui_grid_error(e);
-                                            // Cancel the changes
-                                            this.cancelChanges();
-                                        },
-                                        pageSize: @(Model.AssociatedProductSearchModel.PageSize),
-                                        serverPaging: true,
-                                        serverFiltering: true,
-                                        serverSorting: true
-                                    },
-                                    pageable: {
-                                        refresh: true,
-                                        pageSizes: [@(Model.AssociatedProductSearchModel.AvailablePageSizes)],
-                                        @await Html.PartialAsync("_GridPagerMessages")
-                                    },
-                                    editable: {
-                                        confirmation: "@T("Admin.Common.DeleteConfirmation")",
-                                        mode: "inline"
-                                    },
-                                    scrollable: false,
-                                    columns: [
-                                        {
-                                            field: "ProductName",
-                                            title: "@T("Admin.Catalog.Products.AssociatedProducts.Fields.Product")",
-                                            template: '<a href="@Url.Content("~/Admin/Product/Edit/")#=Id#">#=ProductName#</a>',
-                                            width: 250
-                                        }, {
-                                            field: "DisplayOrder",
-                                            title: "@T("Admin.Catalog.Products.AssociatedProducts.Fields.DisplayOrder")",
-                                            //integer format
-                                            format: "{0:0}",
-                                            width: 120
-                                        }, {
-                                            command: [
-                                                {
-                                                    name: "edit",
-                                                    text: {
-                                                        edit: "@T("Admin.Common.Edit")",
-                                                        update: "@T("Admin.Common.Update")",
-                                                        cancel: "@T("Admin.Common.Cancel")"
-                                                    }
-                                                }, {
-                                                    name: "destroy",
-                                                    text: "@T("Admin.Common.Delete")"
-                                                }
-                                            ],
-                                            width: 220
-                                        }
-                                    ]
-                                });
-                            });
-                </script>
-            </div>
+            @await Html.PartialAsync("Table", new DataTablesModel
+            {
+                Name = "associatedproducts-grid",
+                UrlRead = new DataUrl("AssociatedProductList", "Product", new RouteValueDictionary { [nameof(Model.AssociatedProductSearchModel.ProductId)] = Model.AssociatedProductSearchModel.ProductId }),
+                UrlDelete = new DataUrl("AssociatedProductDelete", "Product", null),
+                UrlUpdate = new DataUrl("AssociatedProductUpdate", "Product", null),
+                Length = Model.AssociatedProductSearchModel.PageSize,
+                LengthMenu = Model.AssociatedProductSearchModel.AvailablePageSizes,
+                ColumnCollection = new List<ColumnProperty>
+                    {
+                        new ColumnProperty(nameof(AssociatedProductModel.ProductName))
+                        {
+                            Title = T("Admin.Catalog.Products.AssociatedProducts.Fields.Product").Text
+                        },
+                        new ColumnProperty(nameof(AssociatedProductModel.DisplayOrder))
+                        {
+                            Title = T("Admin.Catalog.Products.AssociatedProducts.Fields.DisplayOrder").Text,
+                            Width = "150",
+                            ClassName = NopColumnClassDefaults.CenterAll,
+                            Editable = true,
+                            EditType = EditType.Number
+                        },
+                        new ColumnProperty(nameof(AssociatedProductModel.Id))
+                        {
+                            Title = T("Admin.Common.View").Text,
+                            Width = "150",
+                            ClassName = NopColumnClassDefaults.Button,
+                            Render = new RenderButtonView(new DataUrl("~/Admin/Product/Edit/", nameof(AssociatedProductModel.Id)))
+                        },
+                        new ColumnProperty(nameof(AssociatedProductModel.Id))
+                        {
+                            Title = T("Admin.Common.Edit").Text,
+                            Width = "200",
+                            ClassName =  NopColumnClassDefaults.Button,
+                            Render = new RenderButtonsInlineEdit()
+                        },
+                        new ColumnProperty(nameof(AssociatedProductModel.Id))
+                        {
+                            Title = T("Admin.Common.Delete").Text,
+                            Width = "100",
+                            Render = new RenderButtonRemove(T("Admin.Common.Delete").Text),
+                            ClassName = NopColumnClassDefaults.Button
+                        }
+                    }
+            })
+        </div>
             <div class="panel-footer">
                 <button type="submit" id="btnAddNewAssociatedProduct" onclick="javascript:OpenWindow('@(Url.Action("AssociatedProductAddPopup", "Product", new {productId = Model.Id, btnId = "btnRefreshAssociatedProducts", formId = "product-form"}))', 800, 800, true); return false;" class="btn btn-primary">
                     @T("Admin.Catalog.Products.AssociatedProducts.AddNew")
@@ -555,8 +497,7 @@
                     $(document).ready(function () {
                         $('#btnRefreshAssociatedProducts').click(function () {
                             //refresh grid
-                            var grid = $("#associatedproducts-grid").data('kendoGrid');
-                            grid.dataSource.read();
+                            updateTable('#associatedproducts-grid');
 
                             //return false to don't reload a page
                             return false;
@@ -595,16 +536,19 @@
             <nop-label asp-for="SelectedCustomerRoleIds" />
         </div>
         <div class="col-md-9">
-            <nop-select asp-for="SelectedCustomerRoleIds" asp-items="Model.AvailableCustomerRoles" asp-multiple="true" />
-            <script>
-                                $(document).ready(function() {
-                                    var rolesIdsInput = $('#@Html.IdFor(model => model.SelectedCustomerRoleIds)').data("kendoMultiSelect");
-                                    rolesIdsInput.setOptions({
-                                        autoClose: false,
-                                        filter: "contains"
-                                    });
+            <div class="row">
+                <div class="col-md-4">
+                    <nop-select asp-for="SelectedCustomerRoleIds" asp-items="Model.AvailableCustomerRoles" asp-multiple="true"/>
+                    <script>
+                        $(document).ready(function() {
+                            var rolesIdsInput = $('#@Html.IdFor(model => model.SelectedCustomerRoleIds)')
+                                .data("kendoMultiSelect");
+                            rolesIdsInput.setOptions({
+                                autoClose: false,
+                                filter: "contains"
+                            });
 
-                                    @if (Model.AvailableCustomerRoles.Count == 0)
+                            @if (Model.AvailableCustomerRoles.Count == 0)
                             {
                                 <text>
                                     rolesIdsInput.setOptions({
@@ -613,10 +557,15 @@
                                     });
                                     rolesIdsInput._placeholder();
                                     rolesIdsInput._enable();
-                                    </text>
+                                </text>
                             }
-                                });
-            </script>
+                        });
+                    </script>
+                </div>
+                <div class="col-md-8">
+                    @await Component.InvokeAsync("AclDisabledWarning")
+                </div>
+            </div>
         </div>
     </div>
     <div class="form-group @(Model.ProductEditorSettingsModel.Stores ? null : "advanced-setting")">
@@ -624,16 +573,18 @@
             <nop-label asp-for="SelectedStoreIds" />
         </div>
         <div class="col-md-9">
-            <nop-select asp-for="SelectedStoreIds" asp-items="Model.AvailableStores" asp-multiple="true" />
-            <script>
-                                $(document).ready(function() {
-                                    var storesIdsInput = $('#@Html.IdFor(model => model.SelectedStoreIds)').data("kendoMultiSelect");
-                                    storesIdsInput.setOptions({
-                                        autoClose: false,
-                                        filter: "contains"
-                                    });
+            <div class="row">
+                <div class="col-md-4">
+                    <nop-select asp-for="SelectedStoreIds" asp-items="Model.AvailableStores" asp-multiple="true" />
+                    <script>
+                        $(document).ready(function() {
+                            var storesIdsInput = $('#@Html.IdFor(model => model.SelectedStoreIds)').data("kendoMultiSelect");
+                            storesIdsInput.setOptions({
+                                autoClose: false,
+                                filter: "contains"
+                            });
 
-                                    @if (Model.AvailableStores.Count == 0)
+                            @if (Model.AvailableStores.Count == 0)
                             {
                                 <text>
                                     storesIdsInput.setOptions({
@@ -642,10 +593,15 @@
                                     });
                                     storesIdsInput._placeholder();
                                     storesIdsInput._enable();
-                                    </text>
+                                </text>
                             }
-                                });
-            </script>
+                        });
+                    </script>
+                </div>
+                <div class="col-md-8">
+                    @await Component.InvokeAsync("MultistoreDisabledWarning")
+                </div>
+            </div>
         </div>
     </div>
     <div class="form-group @(Model.ProductEditorSettingsModel.Vendor ? null : "advanced-setting")" @(Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;'") : null)>
