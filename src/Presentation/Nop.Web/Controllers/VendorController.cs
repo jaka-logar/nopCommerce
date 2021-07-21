@@ -178,6 +178,7 @@ namespace Nop.Web.Controllers
 
         #region Methods
 
+        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> ApplyVendor()
         {
             if (!_vendorSettings.AllowCustomersToApplyForVendorAccount)
@@ -194,6 +195,7 @@ namespace Nop.Web.Controllers
         [HttpPost, ActionName("ApplyVendor")]
         [AutoValidateAntiforgeryToken]
         [ValidateCaptcha]
+        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> ApplyVendorSubmit(ApplyVendorModel model, bool captchaValid, IFormFile uploadedFile, IFormCollection form)
         {
             if (!_vendorSettings.AllowCustomersToApplyForVendorAccount)
@@ -281,6 +283,7 @@ namespace Nop.Web.Controllers
             return View(model);
         }
 
+        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> Info()
         {
             if (!await _customerService.IsRegisteredAsync(await _workContext.GetCurrentCustomerAsync()))
@@ -297,6 +300,7 @@ namespace Nop.Web.Controllers
         [HttpPost, ActionName("Info")]
         [AutoValidateAntiforgeryToken]
         [FormValueRequired("save-info-button")]
+        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> Info(VendorInfoModel model, IFormFile uploadedFile, IFormCollection form)
         {
             if (!await _customerService.IsRegisteredAsync(await _workContext.GetCurrentCustomerAsync()))
@@ -368,6 +372,7 @@ namespace Nop.Web.Controllers
         [HttpPost, ActionName("Info")]
         [AutoValidateAntiforgeryToken]
         [FormValueRequired("remove-picture")]
+        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> RemovePicture()
         {
             if (!await _customerService.IsRegisteredAsync(await _workContext.GetCurrentCustomerAsync()))
