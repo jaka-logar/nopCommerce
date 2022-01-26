@@ -150,7 +150,6 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         #region Utilities
 
-        /// <returns>A task that represents the asynchronous operation</returns>
         protected virtual async Task<string> ValidateCustomerRolesAsync(IList<CustomerRole> customerRoles, IList<CustomerRole> existingCustomerRoles)
         {
             if (customerRoles == null)
@@ -160,8 +159,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 throw new ArgumentNullException(nameof(existingCustomerRoles));
 
             //check ACL permission to manage customer roles
-            var rolesToAdd = customerRoles.Except(existingCustomerRoles);
-            var rolesToDelete = existingCustomerRoles.Except(customerRoles);
+            var rolesToAdd = customerRoles.Except(existingCustomerRoles, new CustomerRoleComparerByName());
+            var rolesToDelete = existingCustomerRoles.Except(customerRoles, new CustomerRoleComparerByName());
             if (rolesToAdd.Any(role => role.SystemName != NopCustomerDefaults.RegisteredRoleName) || rolesToDelete.Any())
             {
                 if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageAcl))
@@ -181,7 +180,6 @@ namespace Nop.Web.Areas.Admin.Controllers
             return string.Empty;
         }
 
-        /// <returns>A task that represents the asynchronous operation</returns>
         protected virtual async Task<string> ParseCustomCustomerAttributesAsync(IFormCollection form)
         {
             if (form == null)
@@ -260,7 +258,6 @@ namespace Nop.Web.Areas.Admin.Controllers
             return attributesXml;
         }
 
-        /// <returns>A task that represents the asynchronous operation</returns>
         private async Task<bool> SecondAdminAccountExistsAsync(Customer customer)
         {
             var customers = await _customerService.GetAllCustomersAsync(customerRoleIds: new[] { (await _customerService.GetCustomerRoleBySystemNameAsync(NopCustomerDefaults.AdministratorsRoleName)).Id });
@@ -277,7 +274,6 @@ namespace Nop.Web.Areas.Admin.Controllers
             return RedirectToAction("List");
         }
 
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> List()
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -290,7 +286,6 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> CustomerList(CustomerSearchModel searchModel)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -302,7 +297,6 @@ namespace Nop.Web.Areas.Admin.Controllers
             return Json(model);
         }
 
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> Create()
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -316,7 +310,6 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
         [FormValueRequired("save", "save-continue")]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> Create(CustomerModel model, bool continueEditing, IFormCollection form)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -368,11 +361,12 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 //fill entity from model
                 var customer = model.ToEntity<Customer>();
+                var currentStore = await _storeContext.GetCurrentStoreAsync();
 
                 customer.CustomerGuid = Guid.NewGuid();
                 customer.CreatedOnUtc = DateTime.UtcNow;
                 customer.LastActivityDateUtc = DateTime.UtcNow;
-                customer.RegisteredInStoreId = (await _storeContext.GetCurrentStoreAsync()).Id;
+                customer.RegisteredInStoreId = currentStore.Id;
 
                 await _customerService.InsertCustomerAsync(customer);
 
@@ -508,7 +502,6 @@ namespace Nop.Web.Areas.Admin.Controllers
             return View(model);
         }
 
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> Edit(int id)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -527,7 +520,6 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
         [FormValueRequired("save", "save-continue")]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> Edit(CustomerModel model, bool continueEditing, IFormCollection form)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -776,7 +768,6 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         [HttpPost, ActionName("Edit")]
         [FormValueRequired("changepassword")]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> ChangePassword(CustomerModel model)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -811,7 +802,6 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         [HttpPost, ActionName("Edit")]
         [FormValueRequired("markVatNumberAsValid")]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> MarkVatNumberAsValid(CustomerModel model)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -831,7 +821,6 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         [HttpPost, ActionName("Edit")]
         [FormValueRequired("markVatNumberAsInvalid")]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> MarkVatNumberAsInvalid(CustomerModel model)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -851,7 +840,6 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         [HttpPost, ActionName("Edit")]
         [FormValueRequired("remove-affiliate")]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> RemoveAffiliate(CustomerModel model)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -869,7 +857,6 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> RemoveBindMFA(int id)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -891,7 +878,6 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> Delete(int id)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -946,7 +932,6 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         [HttpPost, ActionName("Edit")]
         [FormValueRequired("impersonate")]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> Impersonate(int id)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.AllowCustomerImpersonation))
@@ -966,7 +951,8 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //ensure that a non-admin user cannot impersonate as an administrator
             //otherwise, that user can simply impersonate as an administrator and gain additional administrative privileges
-            if (!await _customerService.IsAdminAsync(await _workContext.GetCurrentCustomerAsync()) && await _customerService.IsAdminAsync(customer))
+            var currentCustomer = await _workContext.GetCurrentCustomerAsync();
+            if (!await _customerService.IsAdminAsync(currentCustomer) && await _customerService.IsAdminAsync(customer))
             {
                 _notificationService.ErrorNotification(await _localizationService.GetResourceAsync("Admin.Customers.Customers.NonAdminNotImpersonateAsAdminError"));
                 return RedirectToAction("Edit", customer.Id);
@@ -976,19 +962,18 @@ namespace Nop.Web.Areas.Admin.Controllers
             await _customerActivityService.InsertActivityAsync("Impersonation.Started",
                 string.Format(await _localizationService.GetResourceAsync("ActivityLog.Impersonation.Started.StoreOwner"), customer.Email, customer.Id), customer);
             await _customerActivityService.InsertActivityAsync(customer, "Impersonation.Started",
-                string.Format(await _localizationService.GetResourceAsync("ActivityLog.Impersonation.Started.Customer"), (await _workContext.GetCurrentCustomerAsync()).Email, (await _workContext.GetCurrentCustomerAsync()).Id), await _workContext.GetCurrentCustomerAsync());
+                string.Format(await _localizationService.GetResourceAsync("ActivityLog.Impersonation.Started.Customer"), currentCustomer.Email, currentCustomer.Id), currentCustomer);
 
             //ensure login is not required
             customer.RequireReLogin = false;
             await _customerService.UpdateCustomerAsync(customer);
-            await _genericAttributeService.SaveAttributeAsync<int?>(await _workContext.GetCurrentCustomerAsync(), NopCustomerDefaults.ImpersonatedCustomerIdAttribute, customer.Id);
+            await _genericAttributeService.SaveAttributeAsync<int?>(currentCustomer, NopCustomerDefaults.ImpersonatedCustomerIdAttribute, customer.Id);
 
             return RedirectToAction("Index", "Home", new { area = string.Empty });
         }
 
         [HttpPost, ActionName("Edit")]
         [FormValueRequired("send-welcome-message")]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> SendWelcomeMessage(CustomerModel model)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1008,7 +993,6 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         [HttpPost, ActionName("Edit")]
         [FormValueRequired("resend-activation-message")]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> ReSendActivationMessage(CustomerModel model)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1028,7 +1012,6 @@ namespace Nop.Web.Areas.Admin.Controllers
             return RedirectToAction("Edit", new { id = customer.Id });
         }
 
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> SendEmail(CustomerModel model)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1081,7 +1064,6 @@ namespace Nop.Web.Areas.Admin.Controllers
             return RedirectToAction("Edit", new { id = customer.Id });
         }
 
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> SendPm(CustomerModel model)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1102,12 +1084,14 @@ namespace Nop.Web.Areas.Admin.Controllers
                     throw new NopException(await _localizationService.GetResourceAsync("PrivateMessages.SubjectCannotBeEmpty"));
                 if (string.IsNullOrWhiteSpace(model.SendPm.Message))
                     throw new NopException(await _localizationService.GetResourceAsync("PrivateMessages.MessageCannotBeEmpty"));
+                
+                var store = await _storeContext.GetCurrentStoreAsync();
 
                 var privateMessage = new PrivateMessage
                 {
-                    StoreId = (await _storeContext.GetCurrentStoreAsync()).Id,
+                    StoreId = store.Id,
                     ToCustomerId = customer.Id,
-                    FromCustomerId = (await _workContext.GetCurrentCustomerAsync()).Id,
+                    FromCustomerId = customer.Id,
                     Subject = model.SendPm.Subject,
                     Text = model.SendPm.Message,
                     IsDeletedByAuthor = false,
@@ -1133,7 +1117,6 @@ namespace Nop.Web.Areas.Admin.Controllers
         #region Reward points history
 
         [HttpPost]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> RewardPointsHistorySelect(CustomerRewardPointsSearchModel searchModel)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1149,7 +1132,6 @@ namespace Nop.Web.Areas.Admin.Controllers
             return Json(model);
         }
 
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> RewardPointsHistoryAdd(AddRewardPointsToCustomerModel model)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1190,7 +1172,6 @@ namespace Nop.Web.Areas.Admin.Controllers
         #region Addresses
 
         [HttpPost]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> AddressesSelect(CustomerAddressSearchModel searchModel)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1207,7 +1188,6 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> AddressDelete(int id, int customerId)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1232,7 +1212,6 @@ namespace Nop.Web.Areas.Admin.Controllers
             return new NullJsonResult();
         }
 
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> AddressCreate(int customerId)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1250,7 +1229,6 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> AddressCreate(CustomerAddressModel model, IFormCollection form)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1297,7 +1275,6 @@ namespace Nop.Web.Areas.Admin.Controllers
             return View(model);
         }
 
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> AddressEdit(int addressId, int customerId)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1320,7 +1297,6 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> AddressEdit(CustomerAddressModel model, IFormCollection form)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1367,7 +1343,6 @@ namespace Nop.Web.Areas.Admin.Controllers
         #region Orders
 
         [HttpPost]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> OrderList(CustomerOrderSearchModel searchModel)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1387,7 +1362,6 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         #region Customer
 
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> LoadCustomerStatistics(string period)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1477,7 +1451,6 @@ namespace Nop.Web.Areas.Admin.Controllers
         #region Current shopping cart/ wishlist
 
         [HttpPost]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> GetCartList(CustomerShoppingCartSearchModel searchModel)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1498,7 +1471,6 @@ namespace Nop.Web.Areas.Admin.Controllers
         #region Activity log
 
         [HttpPost]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> ListActivityLog(CustomerActivityLogSearchModel searchModel)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1519,7 +1491,6 @@ namespace Nop.Web.Areas.Admin.Controllers
         #region Back in stock subscriptions
 
         [HttpPost]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> BackInStockSubscriptionList(CustomerBackInStockSubscriptionSearchModel searchModel)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1539,7 +1510,6 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         #region GDPR
 
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> GdprLog()
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1552,7 +1522,6 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> GdprLogList(GdprLogSearchModel searchModel)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1565,7 +1534,6 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> GdprDelete(int id)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1613,7 +1581,6 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
         }
 
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> GdprExport(int id)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1630,7 +1597,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 //_gdprService.InsertLog(customer, 0, GdprRequestType.ExportData, await _localizationService.GetResource("Gdpr.Exported"));
                 //export
                 //export
-                var bytes = await _exportManager.ExportCustomerGdprInfoToXlsxAsync(customer, (await _storeContext.GetCurrentStoreAsync()).Id);
+                var store = await _storeContext.GetCurrentStoreAsync();
+                var bytes = await _exportManager.ExportCustomerGdprInfoToXlsxAsync(customer, store.Id);
 
                 return File(bytes, MimeTypes.TextXlsx, $"customerdata-{customer.Id}.xlsx");
             }
@@ -1646,7 +1614,6 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         [HttpPost, ActionName("ExportExcel")]
         [FormValueRequired("exportexcel-all")]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> ExportExcelAll(CustomerSearchModel model)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1676,7 +1643,6 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> ExportExcelSelected(string selectedIds)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1706,7 +1672,6 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         [HttpPost, ActionName("ExportXML")]
         [FormValueRequired("exportxml-all")]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> ExportXmlAll(CustomerSearchModel model)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
@@ -1736,7 +1701,6 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        /// <returns>A task that represents the asynchronous operation</returns>
         public virtual async Task<IActionResult> ExportXmlSelected(string selectedIds)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCustomers))
